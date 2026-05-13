@@ -57,6 +57,10 @@ tls:
   mountSecret: false
   existingSecret: ""
   mountPath: /app/certs/server
+  publicMountSecret: false
+  publicExistingSecret: ""
+  publicMountPath: /app/certs/public
+  jwtMountPath: /app/certs/jwt
 
 certManager:
   enabled: false
@@ -84,6 +88,22 @@ certManager:
     renewBefore: 360h
     dnsNames: []
     ipAddresses: []
+  public:
+    create: true
+    certificateName: dragon-cmk-public
+    secretName: ""
+    commonName: dragon-cmk-public
+    duration: 2160h
+    renewBefore: 360h
+    dnsNames: []
+    ipAddresses: []
+  jwt:
+    create: true
+    certificateName: dragon-cmk-jwt
+    secretName: ""
+    commonName: dragon-cmk-jwt
+    duration: 2160h
+    renewBefore: 360h
   client:
     create: false
     certificateName: dragon-cmk-client

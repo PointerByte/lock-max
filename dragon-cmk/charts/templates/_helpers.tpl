@@ -66,6 +66,24 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 {{- end -}}
 
+{{- define "dragon-cmk.publicTlsSecretName" -}}
+{{- if .Values.tls.publicExistingSecret -}}
+{{- .Values.tls.publicExistingSecret -}}
+{{- else if .Values.certManager.public.secretName -}}
+{{- .Values.certManager.public.secretName -}}
+{{- else -}}
+{{- printf "%s-public-tls" (include "dragon-cmk.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "dragon-cmk.jwtSecretName" -}}
+{{- if .Values.certManager.jwt.secretName -}}
+{{- .Values.certManager.jwt.secretName -}}
+{{- else -}}
+{{- printf "%s-jwt" (include "dragon-cmk.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "dragon-cmk.postgresqlName" -}}
 {{- printf "%s-postgresql" (include "dragon-cmk.fullname" .) | trunc 63 | trimSuffix "-" -}}
 {{- end -}}

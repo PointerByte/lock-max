@@ -17,11 +17,6 @@ server:
       SkipPaths:
         - /health
       SkipQueryString: false
-    autotls:
-      enable: false
-      domain: api.example.com
-      dirCache: ./certs
-      version: tlsv12
     tls:
       enable: false
       certFile: ./certs/server/cert.pem
@@ -75,7 +70,7 @@ traces:
     - /health
 
 jwt:
-  enable: false
+  enable: true
   transport: header
   eddsa:
     private_key: ./certs/jwt/ed25519-key.pem

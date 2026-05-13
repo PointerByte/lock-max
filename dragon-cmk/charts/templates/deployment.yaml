@@ -1,3 +1,6 @@
+{{- $mountServerTLS := or .Values.tls.mountSecret (and .Values.certManager.enabled .Values.certManager.server.create) -}}
+{{- $mountPublicTLS := or .Values.tls.publicMountSecret (and .Values.certManager.enabled .Values.certManager.public.create) -}}
+{{- $mountJWT := and .Values.certManager.enabled .Values.certManager.jwt.create -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -25,6 +28,28 @@ spec:
       serviceAccountName: {{ include "dragon-cmk.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- if $mountJWT }}
+      initContainers:
+        - name: prepare-jwt-certs
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - /bin/sh
+            - -ec
+          args:
+            - |
+              cp /cert-manager/jwt/tls.key /jwt-certs/key.pem
+              openssl x509 -in /cert-manager/jwt/tls.crt -pubkey -noout > /jwt-certs/public.pem
+              chmod 0440 /jwt-certs/key.pem /jwt-certs/public.pem
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          volumeMounts:
+            - name: jwt-source
+              mountPath: /cert-manager/jwt
+              readOnly: true
+            - name: jwt-certs
+              mountPath: /jwt-certs
+      {{- end }}
       containers:
         - name: dragon-cmk
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -66,16 +91,29 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
-          {{ if or .Values.tls.mountSecret .Values.certManager.enabled }}
+          {{- if or $mountServerTLS $mountPublicTLS $mountJWT }}
           volumeMounts:
+            {{- if $mountServerTLS }}
             - name: server-tls
               mountPath: {{ .Values.tls.mountPath | quote }}
               readOnly: true
-          {{ end }}
+            {{- end }}
+            {{- if $mountPublicTLS }}
+            - name: public-tls
+              mountPath: {{ .Values.tls.publicMountPath | quote }}
+              readOnly: true
+            {{- end }}
+            {{- if $mountJWT }}
+            - name: jwt-certs
+              mountPath: {{ .Values.tls.jwtMountPath | quote }}
+              readOnly: true
+            {{- end }}
+          {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-      {{ if or .Values.tls.mountSecret .Values.certManager.enabled }}
+      {{- if or $mountServerTLS $mountPublicTLS $mountJWT }}
       volumes:
+        {{- if $mountServerTLS }}
         - name: server-tls
           secret:
             secretName: {{ include "dragon-cmk.tlsSecretName" . }}
@@ -86,7 +124,32 @@ spec:
                 path: key.pem
               - key: ca.crt
                 path: ca.pem
-      {{ end }}
+        {{- end }}
+        {{- if $mountPublicTLS }}
+        - name: public-tls
+          secret:
+            secretName: {{ include "dragon-cmk.publicTlsSecretName" . }}
+            items:
+              - key: tls.crt
+                path: cert.pem
+              - key: tls.key
+                path: key.pem
+              - key: ca.crt
+                path: ca.pem
+        {{- end }}
+        {{- if $mountJWT }}
+        - name: jwt-source
+          secret:
+            secretName: {{ include "dragon-cmk.jwtSecretName" . }}
+            items:
+              - key: tls.crt
+                path: tls.crt
+              - key: tls.key
+                path: tls.key
+        - name: jwt-certs
+          emptyDir: {}
+        {{- end }}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

@@ -21,6 +21,7 @@ FROM alpine:${ALPINE_VERSION} AS final
 RUN --mount=type=cache,target=/var/cache/apk \
     apk --update add \
         ca-certificates \
+        openssl \
         tzdata \
         && \
         update-ca-certificates

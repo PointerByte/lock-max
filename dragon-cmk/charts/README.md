@@ -46,6 +46,8 @@ With the default cert-manager values, the chart creates:
 2. a CA `Certificate`
 3. a CA-backed `Issuer`
 4. a server `Certificate` for the `dragon-cmk` Kubernetes service DNS names
+5. a public/client `Certificate` mounted under `/app/certs/public`
+6. an Ed25519 `Certificate` used to prepare JWT signing keys under `/app/certs/jwt`
 
 The server certificate is mounted at `/app/certs/server` as:
 
@@ -56,6 +58,25 @@ ca.pem   -> ca.crt
 ```
 
 That matches the paths in `application.yaml`.
+
+The public certificate is mounted at `/app/certs/public` with the same file
+names:
+
+```text
+cert.pem -> tls.crt
+key.pem  -> tls.key
+ca.pem   -> ca.crt
+```
+
+The JWT certificate uses cert-manager `privateKey.algorithm: Ed25519`. The
+deployment prepares the files expected by `application.yaml` before the app
+starts. The init container uses the same application image and requires
+`openssl` to be present:
+
+```text
+key.pem    -> Ed25519 private key from tls.key
+public.pem -> Ed25519 public key extracted from tls.crt
+```
 
 To create a client certificate for another service or an ingress that connects
 to `dragon-cmk` with mTLS:

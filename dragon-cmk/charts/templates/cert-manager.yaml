@@ -88,6 +88,66 @@ spec:
     group: {{ .Values.certManager.issuer.group }}
 ---
 {{- end }}
+{{- if .Values.certManager.public.create }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ .Values.certManager.public.certificateName }}
+  namespace: {{ include "dragon-cmk.namespace" . }}
+  labels:
+    {{- include "dragon-cmk.labels" . | nindent 4 }}
+spec:
+  secretName: {{ include "dragon-cmk.publicTlsSecretName" . }}
+  duration: {{ .Values.certManager.public.duration }}
+  renewBefore: {{ .Values.certManager.public.renewBefore }}
+  {{ if .Values.certManager.public.commonName }}
+  commonName: {{ .Values.certManager.public.commonName | quote }}
+  {{ end }}
+  privateKey:
+    algorithm: RSA
+    size: 2048
+  usages:
+    - digital signature
+    - key encipherment
+    - client auth
+  {{ with .Values.certManager.public.dnsNames }}
+  dnsNames:
+    {{ toYaml . | nindent 4 }}
+  {{ end }}
+  {{ with .Values.certManager.public.ipAddresses }}
+  ipAddresses:
+    {{ toYaml . | nindent 4 }}
+  {{ end }}
+  issuerRef:
+    name: {{ .Values.certManager.issuer.name }}
+    kind: {{ .Values.certManager.issuer.kind }}
+    group: {{ .Values.certManager.issuer.group }}
+---
+{{- end }}
+{{- if .Values.certManager.jwt.create }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ .Values.certManager.jwt.certificateName }}
+  namespace: {{ include "dragon-cmk.namespace" . }}
+  labels:
+    {{- include "dragon-cmk.labels" . | nindent 4 }}
+spec:
+  secretName: {{ include "dragon-cmk.jwtSecretName" . }}
+  duration: {{ .Values.certManager.jwt.duration }}
+  renewBefore: {{ .Values.certManager.jwt.renewBefore }}
+  commonName: {{ .Values.certManager.jwt.commonName | quote }}
+  privateKey:
+    algorithm: Ed25519
+    encoding: PKCS8
+  usages:
+    - digital signature
+  issuerRef:
+    name: {{ .Values.certManager.issuer.name }}
+    kind: {{ .Values.certManager.issuer.kind }}
+    group: {{ .Values.certManager.issuer.group }}
+---
+{{- end }}
 {{- if .Values.certManager.client.create }}
 apiVersion: cert-manager.io/v1
 kind: Certificate
