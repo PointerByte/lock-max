@@ -1,0 +1,12 @@
+**/.vscode
+**/logs
+**/coverage.html
+**/.gocache
+**/.idea
+**/.env
+**/.env.*
+**/.venv
+/certs/*
+.codex
+*.txt
+.push.txt.kate-swp

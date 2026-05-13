@@ -1,0 +1,151 @@
+{{- if .Values.postgresql.enabled }}
+{{- if and .Values.postgresql.persistence.enabled .Values.postgresql.persistence.persistentVolume.enabled }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ include "dragon-cmk.postgresqlPersistentVolumeName" . }}
+  labels:
+    {{- include "dragon-cmk.labels" . | nindent 4 }}
+    app.kubernetes.io/component: postgresql
+spec:
+  capacity:
+    storage: {{ .Values.postgresql.persistence.storage | quote }}
+  volumeMode: Filesystem
+  accessModes:
+    {{- toYaml .Values.postgresql.persistence.accessModes | nindent 4 }}
+  persistentVolumeReclaimPolicy: {{ .Values.postgresql.persistence.persistentVolume.reclaimPolicy }}
+  storageClassName: {{ .Values.postgresql.persistence.storageClassName | quote }}
+  claimRef:
+    namespace: {{ include "dragon-cmk.namespace" . }}
+    name: {{ include "dragon-cmk.postgresqlPersistentVolumeClaimName" . }}
+  hostPath:
+    path: {{ .Values.postgresql.persistence.persistentVolume.hostPath | quote }}
+    type: DirectoryOrCreate
+---
+{{- end }}
+{{- if .Values.postgresql.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "dragon-cmk.postgresqlPersistentVolumeClaimName" . }}
+  namespace: {{ include "dragon-cmk.namespace" . }}
+  labels:
+    {{- include "dragon-cmk.labels" . | nindent 4 }}
+    app.kubernetes.io/component: postgresql
+spec:
+  accessModes:
+    {{- toYaml .Values.postgresql.persistence.accessModes | nindent 4 }}
+  resources:
+    requests:
+      storage: {{ .Values.postgresql.persistence.storage | quote }}
+  storageClassName: {{ .Values.postgresql.persistence.storageClassName | quote }}
+  {{ if .Values.postgresql.persistence.persistentVolume.enabled }}
+  volumeName: {{ include "dragon-cmk.postgresqlPersistentVolumeName" . }}
+  {{ end }}
+---
+{{- end }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "dragon-cmk.postgresqlName" . }}
+  namespace: {{ include "dragon-cmk.namespace" . }}
+  labels:
+    {{- include "dragon-cmk.labels" . | nindent 4 }}
+    app.kubernetes.io/component: postgresql
+spec:
+  clusterIP: None
+  selector:
+    {{- include "dragon-cmk.postgresqlSelectorLabels" . | nindent 4 }}
+  ports:
+    - name: postgresql
+      port: {{ .Values.postgresql.port }}
+      targetPort: postgresql
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "dragon-cmk.postgresqlName" . }}
+  namespace: {{ include "dragon-cmk.namespace" . }}
+  labels:
+    {{- include "dragon-cmk.labels" . | nindent 4 }}
+    app.kubernetes.io/component: postgresql
+spec:
+  replicas: 1
+  serviceName: {{ include "dragon-cmk.postgresqlName" . }}
+  selector:
+    matchLabels:
+      {{- include "dragon-cmk.postgresqlSelectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "dragon-cmk.postgresqlSelectorLabels" . | nindent 8 }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.postgresql.podSecurityContext | nindent 8 }}
+      containers:
+        - name: postgresql
+          image: "{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}"
+          imagePullPolicy: {{ .Values.postgresql.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.postgresql.securityContext | nindent 12 }}
+          ports:
+            - name: postgresql
+              containerPort: {{ .Values.postgresql.port }}
+              protocol: TCP
+          env:
+            - name: POSTGRESQL_USERNAME
+              value: {{ .Values.postgresql.adminUser | quote }}
+            - name: POSTGRESQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "dragon-cmk.postgresqlSecretName" . }}
+                  key: {{ .Values.postgresql.existingSecretAdminPasswordKey }}
+            - name: POSTGRESQL_DATABASE
+              value: {{ .Values.postgresql.database | quote }}
+            {{ if .Values.postgresql.existingSecretPostgresPasswordKey }}
+            - name: POSTGRESQL_POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "dragon-cmk.postgresqlSecretName" . }}
+                  key: {{ .Values.postgresql.existingSecretPostgresPasswordKey }}
+                  optional: true
+            {{ end }}
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -ec
+                - pg_isready -U "$POSTGRESQL_USERNAME" -d "$POSTGRESQL_DATABASE"
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 6
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -ec
+                - pg_isready -U "$POSTGRESQL_USERNAME" -d "$POSTGRESQL_DATABASE"
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          volumeMounts:
+            - name: postgresql-storage
+              mountPath: {{ .Values.postgresql.persistence.mountPath | quote }}
+              subPath: data
+            - name: postgresql-storage
+              mountPath: {{ .Values.postgresql.persistence.tablespaceMountPath | quote }}
+              subPath: tablespace-dragon-cmk
+          resources:
+            {{- toYaml .Values.postgresql.resources | nindent 12 }}
+      volumes:
+        - name: postgresql-storage
+          {{ if .Values.postgresql.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "dragon-cmk.postgresqlPersistentVolumeClaimName" . }}
+          {{ else }}
+          emptyDir: {}
+          {{ end }}
+{{- end }}

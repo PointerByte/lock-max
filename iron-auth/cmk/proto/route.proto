@@ -1,0 +1,349 @@
+syntax = "proto3";
+
+package key.v1;
+
+import "google/protobuf/duration.proto";
+import "google/protobuf/struct.proto";
+
+option go_package = "github.com/PointerByte/GoForge/dragon-cmk/proto";
+
+// ========================================================
+// ENUMS
+// ========================================================
+
+enum KeyState {
+  KEY_STATE_UNSPECIFIED = 0;
+  KEY_STATE_ACTIVE = 1;
+  KEY_STATE_DISABLED = 2;
+  KEY_STATE_PENDING_DELETION = 3;
+  KEY_STATE_PENDING_IMPORT = 4;
+  KEY_STATE_UNAVAILABLE = 5;
+  KEY_STATE_RETIRED = 6;
+}
+
+enum KeyPurpose {
+  KEY_PURPOSE_UNSPECIFIED = 0;
+  KEY_PURPOSE_SIGN = 1;
+  KEY_PURPOSE_ENCRYPT = 2;
+  KEY_PURPOSE_WRAP = 3;
+}
+
+enum KeyAlgorithm {
+  KEY_ALGORITHM_UNSPECIFIED = 0;
+  KEY_ALGORITHM_SYMMETRIC_DEFAULT = 1;
+  KEY_ALGORITHM_RSA_OAEP = 2;
+  KEY_ALGORITHM_RSA_PKCS1V15_SHA256 = 3;
+  KEY_ALGORITHM_ECDH = 4;
+  KEY_ALGORITHM_EDDSA = 5;
+}
+
+enum KeyEventType {
+  KEY_EVENT_TYPE_UNSPECIFIED = 0;
+  KEY_EVENT_TYPE_CREATE_KEY = 1;
+  KEY_EVENT_TYPE_ROTATE_KEY = 2;
+}
+
+// ========================================================
+// MODELOS
+// ========================================================
+
+message KeyInfo {
+  string key_id = 1;
+  string version_id = 2;
+  string secret_cmk_key = 3;
+  uint32 version_number = 4;
+  uint32 size = 5;
+  KeyAlgorithm algorithm = 6;
+  KeyPurpose purpose = 7;
+  KeyState state = 8;
+}
+
+message WrappingKeyInfo {
+  string id_cmk_wrapping_key_ref = 1;
+  string provider = 2;
+  string key_ref = 3;
+  string version = 4;
+  string public_key = 5;
+}
+
+message OperationStatus {
+  bool success = 1;
+  string message = 2;
+}
+
+// ========================================================
+// SERVICIOS
+// ========================================================
+
+service KeyService {
+  rpc Status(StatusRequest) returns (StatusResponse);
+  rpc ListCmkKeys(ListCmkKeysRequest) returns (ListCmkKeysResponse);
+
+  rpc CreateKey(CreateKeyRequest) returns (CreateKeyResponse);
+  rpc RotateKey(RotateKeyRequest) returns (RotateKeyResponse);
+  rpc RotateWrapKey(RotateWrapKeyRequest) returns (RotateWrapKeyResponse);
+
+  rpc Encrypt(EncryptRequest) returns (EncryptResponse);
+  rpc Decrypt(DecryptRequest) returns (DecryptResponse);
+  
+  rpc Sing(SingRequest) returns (SingResponse);
+  rpc Verify(VerifyRequest) returns (VerifyResponse);
+
+  rpc CreateJWT(CreateJWTRequest) returns (CreateJWTResponse);
+  rpc VerifyJWT(VerifyJWTRequest) returns (VerifyJWTResponse);
+  rpc ReadJWT(ReadJWTRequest) returns (ReadJWTResponse);
+}
+
+message StatusRequest {}
+
+message StatusResponse {
+  string version = 1;
+  string healthz = 2;
+  string key_id = 3;
+}
+
+message Pagination {
+  uint64 total_registers = 1;
+  uint64 total_pages = 2;
+  uint64 total_registers_page = 3;
+  uint64 page_now = 4;
+}
+
+message CmkKeyRecord {
+  string id_cmk_key = 1;
+  string id_cmk_key_version = 2;
+  KeyAlgorithm algorithm = 3;
+  KeyPurpose purpose = 4;
+  KeyState state = 5;
+}
+
+message ListCmkKeysRequest {
+  string id_kek = 1;
+  uint32 page = 2;
+  uint32 total_resgister_page = 3;
+}
+
+message ListCmkKeysResponse {
+  repeated CmkKeyRecord results = 1;
+  Pagination pagination = 2;
+}
+
+message CreateKeyRequest {
+  string id_cmk_key = 1;
+  KeyAlgorithm algorithm = 2;
+  uint32 size = 3;
+  KeyPurpose purpose = 4;
+  uint32 version = 5;
+  KeyEventType event_type = 6;
+}
+
+message CreateKeyResponse {
+  string secret_cmk_key = 1;
+  KeyInfo key = 2;
+}
+
+message RotateKeyRequest {
+  string secret_cmk_key = 1;
+}
+
+message RotateKeyResponse {
+  string secret_cmk_key = 1;
+  KeyInfo new_key = 2;
+}
+
+message RotateWrapKeyRequest {
+  string id_cmk_wrapping_key_ref = 1;
+}
+
+message RotateWrapKeyResponse {
+  OperationStatus status = 1;
+  WrappingKeyInfo wrapping_key = 2;
+}
+
+message EncryptRequest {
+  bytes plaintext = 1;
+  string uid = 2;
+  string secret_cmk_key = 3;
+  string additional = 4;
+}
+
+message EncryptResponse {
+  bytes ciphertext = 1;
+  string key_id = 2;
+  map<string, bytes> annotations = 3;
+}
+
+message DecryptRequest {
+  bytes ciphertext = 1;
+  string uid = 2;
+  string key_id = 3;
+  map<string, bytes> annotations = 4;
+  string secret_cmk_key = 5;
+  string additional = 6;
+}
+
+message DecryptResponse {
+  bytes plaintext = 1;
+  map<string, bytes> annotations = 2;
+}
+
+message SingRequest {
+  bytes message = 1;
+  string uid = 2;
+  string secret_cmk_key = 3;
+}
+
+message SingResponse {
+  bytes signature = 1;
+  string key_id = 2;
+  map<string, bytes> annotations = 3;
+}
+
+message VerifyRequest {
+  bytes message = 1;
+  bytes signature = 2;
+  string uid = 3;
+  string secret_cmk_key = 4;
+}
+
+message VerifyResponse {
+  bool valid = 1;
+  string key_id = 2;
+}
+
+message CreateJWTRequest {
+  string secret_cmk_key = 1;
+  string algorithm = 2;
+  google.protobuf.Struct claims = 3;
+  google.protobuf.Duration timeout = 4;
+}
+
+message CreateJWTResponse {
+  string token = 1;
+}
+
+message VerifyJWTRequest {
+  string secret_cmk_key = 1;
+  string algorithm = 2;
+  string token = 3;
+}
+
+message VerifyJWTResponse {
+  bool valid = 1;
+}
+
+message ReadJWTRequest {
+  string secret_cmk_key = 1;
+  string algorithm = 2;
+  string token = 3;
+}
+
+message ReadJWTResponse {
+  google.protobuf.Struct claims = 1;
+}
+
+message DisableKeyRequest {
+  string key_id = 1;
+  string version_id = 2;
+  string secret_cmk_key = 3;
+}
+
+message DisableKeyResponse {
+  KeyInfo key = 1;
+}
+
+message EnableKeyRequest {
+  string key_id = 1;
+  string version_id = 2;
+  string secret_cmk_key = 3;
+}
+
+message EnableKeyResponse {
+  KeyInfo key = 1;
+}
+
+message ScheduleKeyDeletionRequest {
+  string key_id = 1;
+  string version_id = 2;
+  int32 pending_window_days = 3;
+  string secret_cmk_key = 4;
+}
+
+message ScheduleKeyDeletionResponse {
+  KeyInfo key = 1;
+}
+
+message PendingDeletionRequest {
+  string secret_cmk_key = 1;
+}
+
+message PendingDeletionResponse {
+  KeyInfo key = 1;
+}
+
+message CancelKeyDeletionRequest {
+  string key_id = 1;
+  string version_id = 2;
+  string secret_cmk_key = 3;
+}
+
+message CancelKeyDeletionResponse {
+  KeyInfo key = 1;
+}
+
+message UnavailableDeleteRequest {
+  string key_id = 1;
+  string version_id = 2;
+  string secret_cmk_key = 3;
+}
+
+message UnavailableDeleteResponse {
+  KeyInfo key = 1;
+}
+
+message DeleteKeyRequest {
+  string secret_cmk_key = 1;
+}
+
+message DeleteKeyResponse {
+  OperationStatus status = 1;
+}
+
+message CreateKEKRequest {
+  string id_cmk_wrapping_key_ref = 1;
+  string secret_cmk_key = 2;
+  string salt = 3;
+}
+
+message CreateKEKResponse {
+  OperationStatus status = 1;
+  WrappingKeyInfo wrapping_key = 2;
+}
+
+message GetKEKRequest {
+  string id_cmk_wrapping_key_ref = 1;
+  string version = 2;
+}
+
+message GetKEKResponse {
+  WrappingKeyInfo wrapping_key = 1;
+}
+
+message RotateKEKRequest {
+  string id_cmk_wrapping_key_ref = 1;
+  string salt = 2;
+}
+
+message RotateKEKResponse {
+  OperationStatus status = 1;
+  WrappingKeyInfo wrapping_key = 2;
+}
+
+message DeleteKEKRequest {
+  string id_cmk_wrapping_key_ref = 1;
+  string version = 2;
+}
+
+message DeleteKEKResponse {
+  OperationStatus status = 1;
+}

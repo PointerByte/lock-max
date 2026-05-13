@@ -1,0 +1,65 @@
+name: dragon-cmk
+
+services:
+  dragon-cmk:
+    image: dragon-cmk:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dragon-cmk
+    env_file:
+      - .env.local
+    environment:
+      VAULT_MODE: ${VAULT_MODE:-local}
+      WORKERS_LIMIT: ${WORKERS_LIMIT:-1000}
+      CMK_SERVICE_CLIENT_ID: ${CMK_SERVICE_CLIENT_ID:-dragon-cmk-service}
+      CMK_SERVICE_CLIENT_SECRET: ${CMK_SERVICE_CLIENT_SECRET:-ecYWVLky2QBgzLL6QjHW}
+      CMK_JWT_TTL: ${CMK_JWT_TTL:-1h}
+      KEK_LOCAL_ENCRYPT_SECRET: ${KEK_LOCAL_ENCRYPT_SECRET:-TWKT4kAjAUhAPCheTVar}
+      PG_MAX_CONNS: ${PG_MAX_CONNS:-200}
+      PG_MIN_CONNS: ${PG_MIN_CONNS:-10}
+      PG_MAX_CONN_LIFETIME: ${PG_MAX_CONN_LIFETIME:-1h}
+      PG_MAX_CONN_IDLE_TIME: ${PG_MAX_CONN_IDLE_TIME:-30m}
+      PG_HEALTH_CHECK_PERIOD: ${PG_HEALTH_CHECK_PERIOD:-1m}
+      PGHOST: ${PGHOST:-postgresql}
+      PGPORT: ${PGPORT:-5432}
+      PGSHEMA: ${PGSHEMA:-dragon_cmk}
+      PGADMIN_USER: ${PGADMIN_USER:-lock_max_user}
+      PGADMIN_PASSWORD: ${PGADMIN_PASSWORD:-e2NVTQKF3ZPrFjFGgL7i}
+      PGUSER: ${PGUSER:-dragon_cmk_user}
+      PGPASSWORD: ${PGPASSWORD:-yQ3rFEeZXUW6863Q6v4i}
+      PGDATABASE: ${PGDATABASE:-lock_max_db}
+      PGSSLMODE: ${PGSSLMODE:-disable}
+    ports:
+      - "8080:8080"
+      - "50051:50051"
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    restart: unless-stopped
+
+  postgresql:
+    image: dhi.io/postgres:18-alpine3.23-fips
+    container_name: postgresql-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRESQL_USERNAME: ${PGADMIN_USER:-lock_max_user}
+      POSTGRESQL_PASSWORD: ${PGADMIN_PASSWORD:-e2NVTQKF3ZPrFjFGgL7i}
+      POSTGRESQL_DATABASE: ${PGDATABASE:-lock_max_db}
+      POSTGRESQL_POSTGRES_PASSWORD: ${POSTGRESQL_POSTGRES_PASSWORD:-Hum87xL92sqzRvoRmBR3}
+    volumes:
+      - postgresql_data:/bitnami/postgresql
+      - tablespace_dragon_cmk:/tablespaces/dragon_cmk
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$$POSTGRESQL_USERNAME" -d "$$POSTGRESQL_DATABASE"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgresql_data:
+  tablespace_dragon_cmk:

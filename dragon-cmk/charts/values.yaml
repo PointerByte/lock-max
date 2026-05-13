@@ -1,0 +1,154 @@
+replicaCount: 2
+
+image:
+  repository: dragon-cmk
+  tag: latest
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+namespace:
+  create: true
+  name: lock-max
+
+serviceAccount:
+  create: true
+  name: ""
+  automount: false
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  fsGroup: 10001
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false
+
+service:
+  type: ClusterIP
+  restPort: 8080
+  grpcPort: 50051
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+
+vaultMode: local
+workersLimit: "1000"
+serverGinTlsEnable: "true"
+serverGinMtlsEnable: "true"
+serverGrpcTlsEnable: "true"
+serverGrpcMtlsEnable: "true"
+
+tls:
+  mountSecret: false
+  existingSecret: ""
+  mountPath: /app/certs/server
+
+certManager:
+  enabled: false
+  selfSignedIssuer:
+    create: true
+    name: dragon-cmk-selfsigned
+  ca:
+    create: true
+    certificateName: dragon-cmk-ca
+    secretName: dragon-cmk-ca
+    commonName: dragon-cmk-ca
+    duration: 87600h
+    renewBefore: 720h
+  issuer:
+    create: true
+    name: dragon-cmk-ca
+    kind: Issuer
+    group: cert-manager.io
+  server:
+    create: true
+    certificateName: dragon-cmk-server
+    secretName: ""
+    commonName: ""
+    duration: 2160h
+    renewBefore: 360h
+    dnsNames: []
+    ipAddresses: []
+  client:
+    create: false
+    certificateName: dragon-cmk-client
+    secretName: ""
+    commonName: dragon-cmk-client
+    duration: 2160h
+    renewBefore: 360h
+    dnsNames: []
+    ipAddresses: []
+
+postgresql:
+  enabled: false
+  image:
+    repository: dhi.io/postgres
+    tag: 18-alpine3.23-fips
+    pullPolicy: IfNotPresent
+  host: postgresql
+  port: "5432"
+  schema: dragon_cmk
+  user: dragon_cmk_user
+  password: change-me-dragon-cmk-user
+  adminUser: lock_max_user
+  adminPassword: change-me-admin
+  postgresPassword: change-me-postgres
+  database: lock_max_db
+  sslMode: disable
+  maxConns: "200"
+  minConns: "10"
+  maxConnLifetime: 1h
+  maxConnIdleTime: 30m
+  healthCheckPeriod: 1m
+  existingSecret: ""
+  existingSecretPasswordKey: PGPASSWORD
+  existingSecretAdminPasswordKey: PGADMIN_PASSWORD
+  existingSecretPostgresPasswordKey: POSTGRESQL_POSTGRES_PASSWORD
+  persistence:
+    enabled: true
+    storage: 10Gi
+    accessModes:
+      - ReadWriteOnce
+    storageClassName: ""
+    mountPath: /bitnami/postgresql
+    tablespaceMountPath: /tablespaces/dragon_cmk
+    persistentVolume:
+      enabled: true
+      hostPath: /var/lib/dragon-cmk/postgresql
+      reclaimPolicy: Retain
+  podSecurityContext:
+    fsGroup: 1001
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: false
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+env: {}
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

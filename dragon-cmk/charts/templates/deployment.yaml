@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "dragon-cmk.fullname" . }}
+  namespace: {{ include "dragon-cmk.namespace" . }}
+  labels:
+    {{- include "dragon-cmk.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "dragon-cmk.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "dragon-cmk.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "dragon-cmk.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: dragon-cmk
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          ports:
+            - name: rest
+              containerPort: {{ .Values.service.restPort }}
+              protocol: TCP
+            - name: grpc
+              containerPort: {{ .Values.service.grpcPort }}
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ include "dragon-cmk.fullname" . }}-env
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "dragon-cmk.postgresqlSecretName" . }}
+                  key: {{ .Values.postgresql.existingSecretPasswordKey }}
+            - name: PGADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "dragon-cmk.postgresqlSecretName" . }}
+                  key: {{ .Values.postgresql.existingSecretAdminPasswordKey }}
+          livenessProbe:
+            tcpSocket:
+              port: rest
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: rest
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          {{ if or .Values.tls.mountSecret .Values.certManager.enabled }}
+          volumeMounts:
+            - name: server-tls
+              mountPath: {{ .Values.tls.mountPath | quote }}
+              readOnly: true
+          {{ end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{ if or .Values.tls.mountSecret .Values.certManager.enabled }}
+      volumes:
+        - name: server-tls
+          secret:
+            secretName: {{ include "dragon-cmk.tlsSecretName" . }}
+            items:
+              - key: tls.crt
+                path: cert.pem
+              - key: tls.key
+                path: key.pem
+              - key: ca.crt
+                path: ca.pem
+      {{ end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

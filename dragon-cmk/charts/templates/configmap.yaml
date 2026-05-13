@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "dragon-cmk.fullname" . }}-env
+  namespace: {{ include "dragon-cmk.namespace" . }}
+  labels:
+    {{- include "dragon-cmk.labels" . | nindent 4 }}
+data:
+  VAULT_MODE: {{ .Values.vaultMode | quote }}
+  WORKERS_LIMIT: {{ .Values.workersLimit | quote }}
+  SERVER_GIN_TLS_ENABLE: {{ .Values.serverGinTlsEnable | quote }}
+  SERVER_GIN_MTLS_ENABLE: {{ .Values.serverGinMtlsEnable | quote }}
+  SERVER_GRPC_TLS_ENABLE: {{ .Values.serverGrpcTlsEnable | quote }}
+  SERVER_GRPC_MTLS_ENABLE: {{ .Values.serverGrpcMtlsEnable | quote }}
+  PG_MAX_CONNS: {{ .Values.postgresql.maxConns | quote }}
+  PG_MIN_CONNS: {{ .Values.postgresql.minConns | quote }}
+  PG_MAX_CONN_LIFETIME: {{ .Values.postgresql.maxConnLifetime | quote }}
+  PG_MAX_CONN_IDLE_TIME: {{ .Values.postgresql.maxConnIdleTime | quote }}
+  PG_HEALTH_CHECK_PERIOD: {{ .Values.postgresql.healthCheckPeriod | quote }}
+  PGHOST: {{ ternary (include "dragon-cmk.postgresqlName" .) .Values.postgresql.host .Values.postgresql.enabled | quote }}
+  PGPORT: {{ .Values.postgresql.port | quote }}
+  PGSHEMA: {{ .Values.postgresql.schema | quote }}
+  PGADMIN_USER: {{ .Values.postgresql.adminUser | quote }}
+  PGUSER: {{ .Values.postgresql.user | quote }}
+  PGDATABASE: {{ .Values.postgresql.database | quote }}
+  PGSSLMODE: {{ .Values.postgresql.sslMode | quote }}
+  {{- range $key, $value := omit .Values.env "VAULT_MODE" "WORKERS_LIMIT" "SERVER_GIN_TLS_ENABLE" "SERVER_GIN_MTLS_ENABLE" "SERVER_GRPC_TLS_ENABLE" "SERVER_GRPC_MTLS_ENABLE" }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
