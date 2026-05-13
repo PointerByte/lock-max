@@ -148,6 +148,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.RESTResponse'
+      security:
+      - BearerAuth: []
       summary: Delete API client
       tags:
       - Auth
@@ -178,6 +180,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.RESTResponse'
+      security:
+      - BearerAuth: []
       summary: Create API client
       tags:
       - Auth
@@ -206,6 +210,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.RESTResponse'
+      security:
+      - BearerAuth: []
       summary: Get API client
       tags:
       - Auth
@@ -238,6 +244,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.RESTResponse'
+      security:
+      - BearerAuth: []
       summary: List API clients
       tags:
       - Auth
@@ -306,6 +314,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.RESTResponse'
+      security:
+      - BearerAuth: []
       summary: Create API client token
       tags:
       - Auth
@@ -336,6 +346,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.RESTResponse'
+      security:
+      - BearerAuth: []
       summary: Delete wrapping key reference
       tags:
       - KEK Config
@@ -369,6 +381,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.RESTResponse'
+      security:
+      - BearerAuth: []
       summary: Get wrapping key reference
       tags:
       - KEK Config
@@ -399,6 +413,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.RESTResponse'
+      security:
+      - BearerAuth: []
       summary: Create wrapping key reference
       tags:
       - KEK Config
@@ -469,6 +485,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.RESTResponse'
+      security:
+      - BearerAuth: []
       summary: Rotate wrapping key reference
       tags:
       - KEK Config
@@ -499,6 +517,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.RESTResponse'
+      security:
+      - BearerAuth: []
       summary: Delete a CMK
       tags:
       - CMK Keys
@@ -529,6 +549,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.RESTResponse'
+      security:
+      - BearerAuth: []
       summary: Cancel CMK deletion
       tags:
       - CMK Keys
@@ -601,6 +623,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.RESTResponse'
+      security:
+      - BearerAuth: []
       summary: Disable a CMK
       tags:
       - CMK Keys
@@ -631,6 +655,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.RESTResponse'
+      security:
+      - BearerAuth: []
       summary: Enable a CMK
       tags:
       - CMK Keys
@@ -701,6 +727,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.RESTResponse'
+      security:
+      - BearerAuth: []
       summary: Mark CMK as pending deletion
       tags:
       - CMK Keys
@@ -731,6 +759,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.RESTResponse'
+      security:
+      - BearerAuth: []
       summary: Schedule CMK deletion
       tags:
       - CMK Keys
@@ -762,6 +792,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.RESTResponse'
+      security:
+      - BearerAuth: []
       summary: Mark CMK unavailable
       tags:
       - CMK Keys

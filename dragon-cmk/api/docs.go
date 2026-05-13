@@ -17,6 +17,11 @@ const docTemplate = `{
     "paths": {
         "/api/auth/v1/clients": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Stores HMAC hashes for client_id and client_secret using the global CMK key as HMAC secret.",
                 "consumes": [
                     "application/json"
@@ -61,6 +66,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Deletes a client after hashing the provided client_id with the global CMK key.",
                 "consumes": [
                     "application/json"
@@ -107,6 +117,11 @@ const docTemplate = `{
         },
         "/api/auth/v1/clients/list": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Lists API clients with pagination. Secrets are never returned.",
                 "produces": [
                     "application/json"
@@ -155,6 +170,11 @@ const docTemplate = `{
         },
         "/api/auth/v1/clients/{client_id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Hashes the provided client_id and returns the matching API client metadata.",
                 "produces": [
                     "application/json"
@@ -243,6 +263,11 @@ const docTemplate = `{
         },
         "/api/auth/v1/token": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Validates client_id/client_secret against the hashed API client table and returns a JWT.",
                 "consumes": [
                     "application/json"
@@ -295,6 +320,11 @@ const docTemplate = `{
         },
         "/api/config/v1/": {
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Deletes a wrapping key reference using the JSON request body.",
                 "consumes": [
                     "application/json"
@@ -341,6 +371,11 @@ const docTemplate = `{
         },
         "/api/config/v1/create": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Creates a wrapping key reference for CMK encryption.",
                 "consumes": [
                     "application/json"
@@ -447,6 +482,11 @@ const docTemplate = `{
         },
         "/api/config/v1/rotate": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Rotates a wrapping key reference using the request id or creates a new id when omitted.",
                 "consumes": [
                     "application/json"
@@ -493,6 +533,11 @@ const docTemplate = `{
         },
         "/api/config/v1/{id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Gets a wrapping key reference by id_generate and optional version.",
                 "produces": [
                     "application/json"
@@ -543,6 +588,11 @@ const docTemplate = `{
         },
         "/api/keys/v1/": {
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Deletes a customer managed key using the JSON request body.",
                 "consumes": [
                     "application/json"
@@ -589,6 +639,11 @@ const docTemplate = `{
         },
         "/api/keys/v1/cancel-deletion": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Cancels pending deletion for a customer managed key.",
                 "consumes": [
                     "application/json"
@@ -700,6 +755,11 @@ const docTemplate = `{
         },
         "/api/keys/v1/disable": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Disables a customer managed key by secret_cmk_key or key_id/version_id.",
                 "consumes": [
                     "application/json"
@@ -746,6 +806,11 @@ const docTemplate = `{
         },
         "/api/keys/v1/enable": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Enables a customer managed key by secret_cmk_key or key_id/version_id.",
                 "consumes": [
                     "application/json"
@@ -852,6 +917,11 @@ const docTemplate = `{
         },
         "/api/keys/v1/pending-deletion": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Moves a customer managed key into pending deletion by secret_cmk_key or key_id/version_id.",
                 "consumes": [
                     "application/json"
@@ -898,6 +968,11 @@ const docTemplate = `{
         },
         "/api/keys/v1/schedule-deletion": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Marks a customer managed key for deletion after the pending window.",
                 "consumes": [
                     "application/json"
@@ -944,6 +1019,11 @@ const docTemplate = `{
         },
         "/api/keys/v1/unavailable": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Moves a customer managed key into unavailable state by secret_cmk_key or key_id/version_id.",
                 "consumes": [
                     "application/json"

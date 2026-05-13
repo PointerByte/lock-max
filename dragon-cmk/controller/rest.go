@@ -63,6 +63,7 @@ func RegisterRESTRoutes(keyRepository cmk.IRepository, wrappingRepository kek.IR
 
 	authRoutes := getRouteFn("/api/auth/v1")
 	authRoutes.POST("/service-token", service.CreateServiceToken)
+	authRoutes.Use(middlewaresSecurity.RequireJWT())
 	authRoutes.POST("/token", service.CreateAPIToken)
 	authRoutes.POST("/clients", service.CreateAPIClient)
 	authRoutes.GET("/clients/list", service.ListAPIClients)
@@ -126,6 +127,7 @@ func (s *RESTService) CreateServiceToken(c *gin.Context) {
 // @Failure 400 {object} models.RESTResponse
 // @Failure 401 {object} models.RESTResponse
 // @Failure 500 {object} models.RESTResponse
+// @Security BearerAuth
 // @Router /api/auth/v1/token [post]
 func (s *RESTService) CreateAPIToken(c *gin.Context) {
 	if !requireAuthRepository(c, s.authRepository) {
@@ -156,6 +158,7 @@ func (s *RESTService) CreateAPIToken(c *gin.Context) {
 // @Success 201 {object} models.RESTResponse
 // @Failure 400 {object} models.RESTResponse
 // @Failure 500 {object} models.RESTResponse
+// @Security BearerAuth
 // @Router /api/auth/v1/clients [post]
 func (s *RESTService) CreateAPIClient(c *gin.Context) {
 	if !requireAuthRepository(c, s.authRepository) {
@@ -187,6 +190,7 @@ func (s *RESTService) CreateAPIClient(c *gin.Context) {
 // @Success 200 {object} models.RESTResponse
 // @Failure 400 {object} models.RESTResponse
 // @Failure 500 {object} models.RESTResponse
+// @Security BearerAuth
 // @Router /api/auth/v1/clients/list [get]
 func (s *RESTService) ListAPIClients(c *gin.Context) {
 	if !requireAuthRepository(c, s.authRepository) {
@@ -218,6 +222,7 @@ func (s *RESTService) ListAPIClients(c *gin.Context) {
 // @Success 200 {object} models.RESTResponse
 // @Failure 400 {object} models.RESTResponse
 // @Failure 500 {object} models.RESTResponse
+// @Security BearerAuth
 // @Router /api/auth/v1/clients/{client_id} [get]
 func (s *RESTService) GetAPIClient(c *gin.Context) {
 	if !requireAuthRepository(c, s.authRepository) {
@@ -241,6 +246,7 @@ func (s *RESTService) GetAPIClient(c *gin.Context) {
 // @Success 200 {object} models.RESTResponse
 // @Failure 400 {object} models.RESTResponse
 // @Failure 500 {object} models.RESTResponse
+// @Security BearerAuth
 // @Router /api/auth/v1/clients [delete]
 func (s *RESTService) DeleteAPIClient(c *gin.Context) {
 	if !requireAuthRepository(c, s.authRepository) {
@@ -267,6 +273,7 @@ func (s *RESTService) DeleteAPIClient(c *gin.Context) {
 // @Success 200 {object} models.RESTResponse
 // @Failure 400 {object} models.RESTResponse
 // @Failure 500 {object} models.RESTResponse
+// @Security BearerAuth
 // @Router /api/keys/v1/enable [post]
 func (s *RESTService) EnableKey(c *gin.Context) {
 	request, ok := bindKeyRequest(c)
@@ -294,6 +301,7 @@ func (s *RESTService) EnableKey(c *gin.Context) {
 // @Success 200 {object} models.RESTResponse
 // @Failure 400 {object} models.RESTResponse
 // @Failure 500 {object} models.RESTResponse
+// @Security BearerAuth
 // @Router /api/keys/v1/disable [post]
 func (s *RESTService) DisableKey(c *gin.Context) {
 	request, ok := bindKeyRequest(c)
@@ -321,6 +329,7 @@ func (s *RESTService) DisableKey(c *gin.Context) {
 // @Success 200 {object} models.RESTResponse
 // @Failure 400 {object} models.RESTResponse
 // @Failure 500 {object} models.RESTResponse
+// @Security BearerAuth
 // @Router /api/keys/v1/schedule-deletion [post]
 func (s *RESTService) ScheduleKeyDeletion(c *gin.Context) {
 	var request models.ScheduleKeyDeletionRequest
@@ -352,6 +361,7 @@ func (s *RESTService) ScheduleKeyDeletion(c *gin.Context) {
 // @Success 200 {object} models.RESTResponse
 // @Failure 400 {object} models.RESTResponse
 // @Failure 500 {object} models.RESTResponse
+// @Security BearerAuth
 // @Router /api/keys/v1/pending-deletion [post]
 func (s *RESTService) PendingDeletion(c *gin.Context) {
 	request, ok := bindKeyRequest(c)
@@ -379,6 +389,7 @@ func (s *RESTService) PendingDeletion(c *gin.Context) {
 // @Success 200 {object} models.RESTResponse
 // @Failure 400 {object} models.RESTResponse
 // @Failure 500 {object} models.RESTResponse
+// @Security BearerAuth
 // @Router /api/keys/v1/cancel-deletion [post]
 func (s *RESTService) CancelKeyDeletion(c *gin.Context) {
 	request, ok := bindKeyRequest(c)
@@ -406,6 +417,7 @@ func (s *RESTService) CancelKeyDeletion(c *gin.Context) {
 // @Success 200 {object} models.RESTResponse
 // @Failure 400 {object} models.RESTResponse
 // @Failure 500 {object} models.RESTResponse
+// @Security BearerAuth
 // @Router /api/keys/v1/unavailable [post]
 func (s *RESTService) UnavailableDelete(c *gin.Context) {
 	request, ok := bindKeyRequest(c)
@@ -433,6 +445,7 @@ func (s *RESTService) UnavailableDelete(c *gin.Context) {
 // @Success 200 {object} models.RESTResponse
 // @Failure 400 {object} models.RESTResponse
 // @Failure 500 {object} models.RESTResponse
+// @Security BearerAuth
 // @Router /api/keys/v1/ [delete]
 func (s *RESTService) DeleteKey(c *gin.Context) {
 	var request models.DeleteKeyRequest
@@ -589,6 +602,7 @@ func (s *RESTService) ListCreationKeyQueues(c *gin.Context) {
 // @Success 201 {object} models.RESTResponse
 // @Failure 400 {object} models.RESTResponse
 // @Failure 500 {object} models.RESTResponse
+// @Security BearerAuth
 // @Router /api/config/v1/create [post]
 func (s *RESTService) CreateKEK(c *gin.Context) {
 	var request models.CreateKEKRequest
@@ -627,6 +641,7 @@ func (s *RESTService) CreateKEK(c *gin.Context) {
 // @Success 204 "Wrapping key not found"
 // @Failure 400 {object} models.RESTResponse
 // @Failure 500 {object} models.RESTResponse
+// @Security BearerAuth
 // @Router /api/config/v1/{id} [get]
 func (s *RESTService) GetKEK(c *gin.Context) {
 	idGenerate, err := optionalRESTUUID(restID(c), "id_generate")
@@ -656,6 +671,7 @@ func (s *RESTService) GetKEK(c *gin.Context) {
 // @Success 200 {object} models.RESTResponse
 // @Failure 400 {object} models.RESTResponse
 // @Failure 500 {object} models.RESTResponse
+// @Security BearerAuth
 // @Router /api/config/v1/rotate [post]
 func (s *RESTService) RotateKEK(c *gin.Context) {
 	var request models.RotateKEKRequest
@@ -693,6 +709,7 @@ func (s *RESTService) RotateKEK(c *gin.Context) {
 // @Success 200 {object} models.RESTResponse
 // @Failure 400 {object} models.RESTResponse
 // @Failure 500 {object} models.RESTResponse
+// @Security BearerAuth
 // @Router /api/config/v1/ [delete]
 func (s *RESTService) DeleteKEK(c *gin.Context) {
 	var request models.DeleteKEKRequest

@@ -6,16 +6,19 @@ Dragon CMK is a Customer Managed Key service with REST and gRPC APIs for key lif
 
 REST listens on `server.gin.port` and gRPC listens on `server.grpc.port`.
 
-Auth endpoints do not require JWT:
+Auth endpoint without JWT:
 
 - `POST /api/auth/v1/service-token`: creates a JWT using HTTP Basic auth. Credentials come from `CMK_SERVICE_CLIENT_ID` and `CMK_SERVICE_CLIENT_SECRET`.
+
+Auth endpoints that require `Authorization: Bearer <token>`:
+
 - `POST /api/auth/v1/token`: creates a JWT using a JSON `client_id` and `client_secret` validated against the hashed API client table.
 - `POST /api/auth/v1/clients`: creates an API client. `client_id` and `client_secret` are stored as HMAC hashes.
 - `GET /api/auth/v1/clients/list?page=1&totalResgisterPage=100`: lists API clients.
 - `GET /api/auth/v1/clients/{client_id}`: gets API client metadata.
 - `DELETE /api/auth/v1/clients`: deletes an API client using body `{"client_id":"..."}`.
 
-Protected APIs still require `Authorization: Bearer <token>`:
+These APIs also require `Authorization: Bearer <token>`:
 
 - `/api/keys/v1/*`: CMK lifecycle, key versions, and creation queues.
 - `/api/config/v1/*`: KEK/wrapping key configuration.
