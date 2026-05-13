@@ -1,0 +1,3 @@
+{"timestamp":"2026-05-12T18:16:02.969","traceID":"3c24a64581384782ab88ecdd94dda65d","level":"INFO","message":"boom","details":{"system":"dragon-cmk"},"services":[],"method":"github.com/PointerByte/lock-max/dragon-cmk.init.func5","line":59,"latency":0}
+{"timestamp":"2026-05-12T18:16:41.860","traceID":"506ade480fab4b2fbf546b56a02ee072","level":"INFO","message":"boom","details":{"system":"dragon-cmk"},"services":[],"method":"github.com/PointerByte/lock-max/dragon-cmk.init.func5","line":59,"latency":0}
+{"timestamp":"2026-05-12T18:17:46.588","traceID":"f89c57f0c41b4a7c9af12a53c136f0f8","level":"INFO","message":"boom","details":{"system":"dragon-cmk"},"services":[],"method":"github.com/PointerByte/lock-max/dragon-cmk.init.func5","line":59,"latency":0}

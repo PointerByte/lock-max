@@ -1,0 +1,2 @@
+# db/main.py uses only the Python standard library.
+# PostgreSQL access is performed through the external `psql` executable.

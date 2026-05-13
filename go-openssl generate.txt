@@ -1,0 +1,55 @@
+-- Certificados JWT
+
+go-openssl generate \
+  --algorithm ed25519 \
+  --dir ./certs/jwt \
+  --common-name dragon-cmk.chest-max.svc.cluster.local \
+  --dns dragon-cmk.chest-max.svc.cluster.local \
+  --organization "PointerByte" \
+  --days 365 \
+  --key-file key.pem \
+  --public-key-file public.pem
+
+-- Certificados Server
+
+go-openssl generate \
+  --algorithm ecc \
+  --ecc-curve p521 \
+  --dir ./certs/server \
+  --common-name dragon-cmk-ca.chest-max.svc.cluster.local \
+  --organization "PointerByte" \
+  --days 365 \
+  --ca \
+  --cert-file ca.pem \
+  --key-file ca-key.pem \
+  --public-key-file ca-public.pem
+
+go-openssl generate \
+  --algorithm ecc \
+  --ecc-curve p521 \
+  --dir ./certs/server \
+  --common-name dragon-cmk.chest-max.svc.cluster.local \
+  --dns dragon-cmk.chest-max.svc.cluster.local \
+  --organization "PointerByte" \
+  --days 365 \
+  --cert-file cert.pem \
+  --key-file key.pem \
+  --public-key-file public.pem \
+  --signed-by ./certs/server/ca.pem \
+  --ca-key ./certs/server/ca-key.pem
+
+-- Certificados Cliente
+
+go-openssl generate \
+  --algorithm ecc \
+  --ecc-curve p521 \
+  --dir ./certs/client \
+  --common-name dragon-cmk-client.chest-max.svc.cluster.local \
+  --dns dragon-cmk-client.chest-max.svc.cluster.local \
+  --organization "PointerByte" \
+  --days 365 \
+  --cert-file cert.pem \
+  --key-file key.pem \
+  --public-key-file public.pem \
+  --signed-by ./certs/server/ca.pem \
+  --ca-key ./certs/server/ca-key.pem
